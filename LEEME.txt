@@ -9,6 +9,12 @@ QUÉ TIENE (cada empleado la usa en SU celular: sus datos quedan sólo ahí)
   Vista Mes, Semana y "Mis guardias". Tocando un día: "Cambiar guardia" (ceder, tomar o intercambio) y "Volver al listado".
   Cada empleado puede cambiar guardias en su celular (no se ve en los otros celulares).
   "Pasar guardias al calendario del celular" las agrega al calendario con aviso la noche anterior.
+- INICIO CON BOTONES GRANDES (14/11/2026, como en Mi Agenda pero con los colores de Roma): Calendario, Mi Día, Mi Semana,
+  Guardias, Citas Médicas, Tareas, Notas, Hábitos y Gastos (en lugar de Metas). Los numeritos avisan lo pendiente.
+  · Mi Día: guardia de hoy, lo anotado y las tareas de hoy, hábitos, foco, pendientes, vasos de agua, ánimo y notas.
+  · Citas Médicas: son las anotaciones de tipo 🩺 Turno médico (salen también en el calendario).
+  · Tareas (con fecha opcional), Notas (con fijar arriba) y Hábitos (con racha de días seguidos).
+  Todo queda guardado sólo en el celular de cada uno y entra en la copia de seguridad.
 - Mis anotaciones (como en Mi Agenda): cada uno anota sus cosas en el calendario: turno médico, trámite, cumpleaños,
   salida, recordatorio u otro, con fecha, hora opcional y nota. Los cumpleaños pueden repetirse todos los años.
   Se ven en el Inicio ("Lo que tengo anotado"), en el calendario (el emoji en el día), en la semana y al tocar un día

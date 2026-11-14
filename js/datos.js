@@ -67,7 +67,9 @@
 
   function crear(guardado) {
     let E = guardado && typeof guardado === 'object' && Array.isArray(guardado.farmacias) ? guardado : inicial();
-    E.cambios = E.cambios || {}; E.gastos = E.gastos || []; E.anot = E.anot || []; E.cfg = E.cfg || {};
+    E.cambios = E.cambios || {}; E.gastos = E.gastos || []; E.anot = E.anot || [];
+    E.tareas = E.tareas || []; E.notas = E.notas || []; E.habitos = E.habitos || []; E.habHechos = E.habHechos || {}; E.dias = E.dias || {};
+    E.cfg = E.cfg || {};
     E.vac = E.vac || {}; E.vac.lista = E.vac.lista || []; E.vac.anios = E.vac.anios || {}; if (!(E.vac.porAnio >= 0)) E.vac.porAnio = 14;
     if (!E.cfg.mia) E.cfg.mia = 'ambas';
     const atras = [];                                    // para "Deshacer"
@@ -306,6 +308,54 @@
       return ics([{ uid: 'anot-' + a.id, titulo: tipo(a.tipo).emoji + ' ' + a.titulo, fecha, hora: a.hora, nota: a.nota, anual: a.anual, aviso: a.hora ? '-PT2H' : '-PT15H' }]);
     }
 
+    // ---------- tareas, notas, hábitos y mi día (como en "Mi Agenda")
+    function upsert(lista, x, que) {
+      antes(que); x.id = x.id || nuevoId(); const L = E[lista], i = L.findIndex(y => y.id === x.id);
+      if (i >= 0) L[i] = { ...L[i], ...x }; else L.push(x); guardar(); return L.find(y => y.id === x.id);
+    }
+    function borrarDe(lista, id, que) { const L = E[lista], i = L.findIndex(y => y.id === id); if (i < 0) return; antes(que); L.splice(i, 1); guardar(); }
+    function guardarTarea(t) {
+      const tx = txt(t.t, 160); if (!tx) throw new Error('Escribí la tarea');
+      if (t.fecha && !valida(t.fecha)) throw new Error('Fecha inválida');
+      const viejo = t.id ? E.tareas.find(y => y.id === t.id) : null;
+      return upsert('tareas', { id: t.id || null, t: tx, fecha: t.fecha || '', nota: txt(t.nota, 400), ok: viejo ? viejo.ok : false, hecha: viejo ? viejo.hecha : '', creada: viejo ? viejo.creada : hoyLocal() }, t.id ? 'el cambio de la tarea' : 'la tarea nueva');
+    }
+    function tareaOk(id, si) { const x = E.tareas.find(y => y.id === id); if (!x) return; antes(si ? 'tarea hecha' : 'desmarcar'); x.ok = !!si; x.hecha = si ? hoyLocal() : ''; guardar(); }
+    function tareasPendientes() {
+      return E.tareas.filter(x => !x.ok).sort((a, b) => (a.fecha || '9999') < (b.fecha || '9999') ? -1 : (a.fecha || '9999') > (b.fecha || '9999') ? 1 : (a.creada < b.creada ? -1 : 1));
+    }
+    function borrarHechas() { if (!E.tareas.some(x => x.ok)) return; antes('las tareas hechas'); E.tareas = E.tareas.filter(x => !x.ok); guardar(); }
+    function guardarNota(n) {
+      const titulo = txt(n.titulo, 80), texto = txt(n.texto, 5000); if (!titulo && !texto) throw new Error('La nota está vacía');
+      const viejo = n.id ? E.notas.find(y => y.id === n.id) : null;
+      return upsert('notas', { id: n.id || null, titulo, texto, fijada: viejo ? !!viejo.fijada : false, color: viejo ? viejo.color : E.notas.length % 4, mod: new Date().toISOString() }, n.id ? 'el cambio de la nota' : 'la nota nueva');
+    }
+    function fijarNota(id) { const x = E.notas.find(y => y.id === id); if (!x) return; antes('fijar'); x.fijada = !x.fijada; guardar(); }
+    const notasOrdenadas = () => E.notas.slice().sort((a, b) => (b.fijada ? 1 : 0) - (a.fijada ? 1 : 0) || (a.mod < b.mod ? 1 : -1));
+    function guardarHabito(h) {
+      const nombre = txt(h.nombre, 40); if (!nombre) throw new Error('Escribí el hábito');
+      if (E.habitos.some(y => y.id !== h.id && y.nombre.toLowerCase() === nombre.toLowerCase())) throw new Error('Ya tenés ese hábito');
+      return upsert('habitos', { id: h.id || null, nombre, emoji: txt(h.emoji, 8) || '🌱' }, h.id ? 'el cambio del hábito' : 'el hábito nuevo');
+    }
+    function borrarHabito(id) {
+      const i = E.habitos.findIndex(y => y.id === id); if (i < 0) return; antes('el hábito borrado'); E.habitos.splice(i, 1);
+      for (const f of Object.keys(E.habHechos)) { E.habHechos[f] = E.habHechos[f].filter(x => x !== id); if (!E.habHechos[f].length) delete E.habHechos[f]; }
+      guardar();
+    }
+    const habitoHecho = (id, f) => (E.habHechos[f] || []).includes(id);
+    function tildarHabito(id, f, si) {
+      if (!valida(f)) throw new Error('Fecha inválida'); antes(si ? 'el hábito' : 'desmarcar');
+      const l = (E.habHechos[f] || []).filter(x => x !== id); if (si) l.push(id);
+      if (l.length) E.habHechos[f] = l; else delete E.habHechos[f]; guardar();
+    }
+    function racha(id, hasta) { let f = hasta, n = 0; if (!habitoHecho(id, f)) f = sumar(f, -1); while (habitoHecho(id, f) && n < 3660) { n++; f = sumar(f, -1); } return n; }
+    function dia(f) { return E.dias[f] || { foco: '', pendientes: [], notas: '', agua: 0, animo: 0 }; }
+    function guardarDia(f, cambios, que) {
+      antes(que || 'el cambio'); const d = { ...dia(f), ...cambios };
+      if (!d.foco && !d.notas && !(d.pendientes || []).length && !d.agua && !d.animo) delete E.dias[f]; else E.dias[f] = d;
+      guardar();
+    }
+
     // ---------- copia de seguridad
     function exportar() { return JSON.stringify({ app: 'rofac-roma-empleado', guardado: new Date().toISOString(), datos: E }, null, 1); }
     function importar(texto) {
@@ -346,7 +396,8 @@
     return {
       E, farmacia, esNuestra, nuestras, oficial, info, guardiasNuestras, proximasNuestras, resumenMes,
       cambiar, volverOriginal, guardarFarmacias, nuevoListado, borrarListado, setConfirmado, setCfg, exportar, importar, icsGuardias, icsVac, deshacer,
-      cat, guardarGasto, borrarGasto, gastosMes, tipo, guardarAnot, borrarAnot, anotDe, proximasAnot, icsAnot,
+      cat, guardarGasto, borrarGasto, gastosMes, tipo, borrarDe, guardarTarea, tareaOk, tareasPendientes, borrarHechas, guardarNota, fijarNota, notasOrdenadas,
+      guardarHabito, borrarHabito, habitoHecho, tildarHabito, racha, dia, guardarDia, guardarAnot, borrarAnot, anotDe, proximasAnot, icsAnot,
       diasVac, corresponden, tomados, resumenVac, anioSugerido, revisarVac, guardarVac, borrarVac, setCorresponden, vacDe, proximasVac,
       hayDeshacer: () => atras.length > 0, set alGuardar(fn) { alGuardar = fn; },
     };

@@ -231,3 +231,60 @@ a.btn { text-decoration: none; }
 .anot-s { display: block; font-size: 12.5px; color: var(--tinta); margin-top: 2px; }
 .chk { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 12px 0 2px; flex-wrap: wrap; }
 .chk input { width: 18px; height: 18px; accent-color: var(--azul); }
+
+/* ---------- inicio: botones grandes (como Mi Agenda, con los colores de Roma) */
+.ini-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 0 14px; }
+.ini-t { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 104px; padding: 12px 4px 10px;
+  background: var(--card); border: 1px solid var(--borde); border-radius: 18px; box-shadow: 0 6px 16px -12px #0b3c9e55; color: var(--tinta); }
+.ini-t:active { transform: scale(.97); }
+.ini-i { display: grid; place-items: center; width: 50px; height: 50px; border-radius: 15px; }
+.ini-t.v .ini-i { background: var(--verde-claro); color: var(--verde-osc); }
+.ini-t.a .ini-i { background: var(--azul-claro); color: var(--azul-osc); }
+.ini-n { font-size: 13.5px; font-weight: 500; text-align: center; line-height: 1.15; }
+.ini-b { position: absolute; top: 7px; right: 7px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; font-size: 11.5px; font-weight: 600; line-height: 20px; text-align: center; color: #fff; background: var(--azul); }
+.ini-t.v .ini-b { background: var(--verde); }
+.volver { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; color: var(--azul-osc); font-weight: 500; font-size: 14px; padding: 2px 0 8px; }
+
+/* tareas / pendientes */
+.circ { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--tenue2); background: #fff; display: grid; place-items: center; color: #fff; padding: 0; }
+.circ.ok { background: var(--verde); border-color: var(--verde); }
+.fila.hecho .txt b, .pend.ok span { text-decoration: line-through; color: var(--tenue); }
+.fila .txt.toca { cursor: pointer; }
+.fila small.rojo, small.rojo { color: var(--rojo) !important; }
+.add-pend { display: flex; gap: 8px; margin: 6px 0; }
+.add-pend .in { flex: 1; }
+.add-pend .btn { flex: none; width: 46px; padding: 0; }
+.pend { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px dashed var(--borde); }
+.pend span { flex: 1; min-width: 0; }
+.pend .mini { border: 0; background: none; color: var(--tenue); padding: 4px; }
+.agua { display: flex; flex-wrap: wrap; gap: 2px; color: var(--azul-2); }
+.agua button { border: 0; background: none; padding: 0; color: inherit; }
+.animo { display: flex; gap: 8px; }
+.animo button { font-size: 26px; border: 2px solid transparent; background: #fff; border-radius: 14px; padding: 4px 6px; opacity: .55; }
+.animo button.act { opacity: 1; border-color: var(--verde); background: var(--verde-claro); }
+.frase { text-align: center; color: var(--tenue); font-style: italic; margin: 6px 0 14px; }
+
+/* notas */
+.notas-grid { columns: 2; column-gap: 10px; }
+.nota-c { position: relative; display: block; width: 100%; break-inside: avoid; margin: 0 0 10px; text-align: left; border: 1px solid var(--borde); border-radius: 14px; padding: 12px; background: #fff; color: var(--tinta); }
+.nota-c.c1 { background: var(--verde-claro); border-color: #c6ead1; } .nota-c.c2 { background: var(--azul-claro); border-color: #cddcf8; } .nota-c.c3 { background: var(--amarillo); border-color: #f2e2b5; }
+.nota-c b { display: block; margin-bottom: 4px; font-weight: 600; }
+.nota-c span { display: block; font-size: 13.5px; white-space: pre-wrap; word-break: break-word; }
+.nota-c small { display: block; margin-top: 6px; font-size: 11.5px; color: var(--tenue); }
+.nota-pin { position: absolute; top: -8px; right: 8px; font-size: 16px; }
+
+/* hábitos */
+.hab-res { text-align: center; font-size: 14px; } .hab-res b { font-size: 20px; color: var(--verde-osc); }
+.hab-barra { height: 8px; border-radius: 4px; background: #e8eef6; overflow: hidden; margin-top: 8px; }
+.hab-barra div { height: 100%; background: var(--grad); border-radius: 4px; }
+.hab-f { display: flex; align-items: center; gap: 10px; }
+.hab-f .txt { flex: 1; min-width: 0; cursor: pointer; } .hab-f .txt small { display: block; color: var(--tenue); font-size: 12.5px; }
+.hab-e { font-size: 26px; width: 34px; text-align: center; }
+.hab-hoy { flex: none; width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--borde); background: #fff; color: var(--tenue2); display: grid; place-items: center; }
+.hab-hoy.ok { background: var(--verde); border-color: var(--verde); color: #fff; }
+.hab-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 10px; }
+.hab-dias button { border: 1px solid var(--borde); background: #fff; border-radius: 10px; padding: 4px 0; line-height: 1.1; color: var(--tinta); }
+.hab-dias button small { display: block; font-size: 10px; color: var(--tenue); text-transform: uppercase; }
+.hab-dias button i { font-style: normal; font-weight: 600; font-size: 14px; }
+.hab-dias button.ok { background: var(--verde-claro); border-color: var(--verde); color: var(--verde-osc); }
+.hab-dias button.hoy { box-shadow: 0 0 0 2px var(--azul-2) inset; }

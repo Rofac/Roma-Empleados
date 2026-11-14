@@ -1,6 +1,6 @@
 /* Guarda la app en el celular para que abra sin internet.
    Al cambiar VERSION, el celular baja la versión nueva la próxima vez que abre la app con internet. */
-const VERSION = 'roma-1.2.1';
+const VERSION = 'roma-1.3.1';
 const ARCHIVOS = ['./', 'index.html', 'manifest.webmanifest', 'css/app.css', 'js/datos.js', 'js/iconos.js', 'js/lic.js', 'js/app.js',
   'fonts/Poppins-Regular.woff', 'fonts/Poppins-Medium.woff', 'fonts/Poppins-Bold.woff',
   'img/favicon.png', 'img/icono-192.png', 'img/icono-512.png', 'img/apple-touch-icon.png', 'img/logo-roma.png'];

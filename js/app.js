@@ -81,11 +81,127 @@
     if (prox) return `Próximas vacaciones: <b>${fechaChica(prox.desde)}</b> (${faltan(prox.desde)}) · te quedan <b>${r.quedan}</b> días`;
     return `Te quedan <b>${r.quedan}</b> días de vacaciones del ${r.anio}`;
   }
+  // botones grandes del inicio (como en "Mi Agenda"), con los colores de Roma
+  function grillaInicio() {
+    const i = A.info(HOY), pend = A.tareasPendientes(), paraHoy = pend.filter(t => t.fecha && t.fecha <= HOY).length + A.anotDe(HOY).length;
+    const hab = A.E.habitos, hechos = hab.filter(h => A.habitoHecho(h.id, HOY)).length;
+    const citas7 = A.proximasAnot(HOY, 7, 50).filter(a => a.tipo === 'medico').length, nuestra = i && A.esNuestra(i.turno);
+    const T = [['vista', 'mes', 'Calendario', 'mes', 'v', ''], ['ir', 'midia', 'Mi Día', 'midia', 'v', paraHoy || ''], ['vista', 'semana', 'Mi Semana', 'semana', 'v', ''],
+      ['vista', 'lista', 'Guardias', 'guardia', 'a', nuestra ? 'hoy' : ''], ['ir', 'citas', 'Citas Médicas', 'estetos', 'a', citas7 || ''], ['ir', 'tareas', 'Tareas', 'tareas', 'a', pend.length || ''],
+      ['ir', 'notas', 'Notas', 'libreta', 'v', ''], ['ir', 'habitos', 'Hábitos', 'brote', 'v', hab.length ? `${hechos}/${hab.length}` : ''], ['ir', 'gastos', 'Gastos', 'plata', 'v', '']];
+    return `<div class="ini-grid">${T.map(([acc, p, t, ic, col, b]) => `<button class="ini-t ${col}" data-acc="${acc === 'vista' ? 'irVista' : 'ir'}" data-p="${acc === 'vista' ? 'turnos' : p}" data-v="${p}">${b !== '' ? `<span class="ini-b">${b}</span>` : ''}<span class="ini-i">${I(ic, 28)}</span><span class="ini-n">${t}</span></button>`).join('')}</div>`;
+  }
+  const volver = () => `<button class="volver" data-acc="ir" data-p="inicio">${I('izq', 18)} Inicio</button>`;
+
+  // =================== MI DÍA
+  const FRASES = ['Un paso a la vez.', 'Hoy también suma.', 'Lo que hacés con ganas se nota.', 'Cuidarte también es trabajo.', 'Respirá: vas bien.', 'Pequeños logros, grandes días.', 'Hacelo simple.'];
+  function pMiDia() {
+    const dd = A.dia(HOY), an = A.anotDe(HOY), tareas = A.tareasPendientes().filter(t => t.fecha && t.fecha <= HOY), H = A.E.habitos;
+    const vaso = n => `<svg viewBox="0 0 24 30" width="26" height="32"><path d="M5 4h14l-2 23H7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>${n ? '<path d="M6.3 11h11.4l-1.5 15.4H7.8z" fill="#2f8ef0"/>' : ''}</svg>`;
+    const caras = ['😄', '🙂', '😐', '🙁', '😣'];
+    return volver() + cab('Mi día', may(F.fechaLarga(HOY))) + turnoCard() +
+      `<div class="card"><div class="card-t">${I('tareas', 18)} Para hoy</div>
+        ${an.map(a => filaAnot(a, false)).join('')}${tareas.map(filaTarea).join('')}
+        ${an.length || tareas.length ? '' : '<div class="vacio">Nada pendiente para hoy</div>'}
+        <div class="botones"><button class="btn sec chico" data-acc="nuevaTarea" data-f="${HOY}">${I('mas_', 17)} Tarea</button><button class="btn sec chico" data-acc="nuevaAnot" data-f="${HOY}">${I('mas_', 17)} Anotar algo</button></div></div>
+      ${H.length ? `<div class="card"><div class="card-t">${I('brote', 18)} Hábitos de hoy</div><div class="pills">${H.map(h => `<button class="${A.habitoHecho(h.id, HOY) ? 'act' : ''}" data-acc="habDia" data-id="${h.id}" data-f="${HOY}">${esc(h.emoji)} ${esc(h.nombre)}</button>`).join('')}</div></div>` : ''}
+      <div class="card"><div class="card-t">${I('midia', 18)} Mi día</div>
+        <label class="l" for="mdF">Foco de hoy</label><input class="in" id="mdF" data-dia="foco" data-f="${HOY}" value="${esc(dd.foco)}" placeholder="Lo más importante de hoy…" autocomplete="off">
+        <label class="l">Pendientes</label>
+        ${(dd.pendientes || []).map((p, k) => `<div class="pend ${p.ok ? 'ok' : ''}"><button class="circ ${p.ok ? 'ok' : ''}" data-acc="pend" data-k="${k}" data-f="${HOY}" aria-label="Hecho">${p.ok ? I('check', 15) : ''}</button><span>${esc(p.t)}</span><button class="mini" data-acc="pendX" data-k="${k}" data-f="${HOY}" aria-label="Borrar">${I('cruz', 16)}</button></div>`).join('')}
+        <form class="add-pend" data-acc="pendAdd" data-f="${HOY}"><input class="in" name="t" placeholder="Agregar pendiente…" enterkeyhint="done" autocomplete="off"><button class="btn chico" aria-label="Agregar">${I('mas_', 18)}</button></form>
+        <label class="l">Agua (vasos)</label><div class="agua">${[1, 2, 3, 4, 5, 6, 7, 8].map(n => `<button data-acc="agua" data-n="${n}" data-f="${HOY}" aria-label="${n} vasos">${vaso(n <= (dd.agua || 0))}</button>`).join('')}</div>
+        <label class="l">¿Cómo estoy?</label><div class="animo">${caras.map((c, k) => `<button class="${dd.animo === k + 1 ? 'act' : ''}" data-acc="animo" data-n="${k + 1}" data-f="${HOY}">${c}</button>`).join('')}</div>
+        <label class="l" for="mdN">Notas</label><textarea class="in" id="mdN" rows="3" data-dia="notas" data-f="${HOY}" placeholder="Escribí lo que quieras…">${esc(dd.notas)}</textarea></div>
+      <div class="frase">“${esc(FRASES[F.entre('2026-01-01', HOY) % FRASES.length])}”</div>`;
+  }
+
+  // =================== CITAS MÉDICAS (son las anotaciones de tipo "Turno médico": salen en el calendario)
+  function pCitas() {
+    const fut = A.proximasAnot(HOY, 400, 200).filter(a => a.tipo === 'medico');
+    const pas = A.E.anot.filter(a => a.tipo === 'medico' && !a.anual && a.fecha < HOY).sort((a, b) => a.fecha < b.fecha ? 1 : -1).slice(0, 20).map(a => ({ ...a, cuando: a.fecha }));
+    return volver() + cab('Citas médicas', 'turnos con el médico, estudios, análisis') +
+      `<div class="botones" style="margin:0 0 12px"><button class="btn" data-acc="nuevaAnot" data-f="${HOY}">${I('mas_', 18)} Nueva cita</button></div>
+      <div class="card"><div class="card-t">${I('estetos', 18)} Próximas</div>${fut.map(a => filaAnot(a, true)).join('') || '<div class="vacio">No hay citas cargadas</div>'}</div>
+      ${pas.length ? `<div class="card"><div class="card-t">${I('lista', 18)} Anteriores</div>${pas.map(a => filaAnot(a, true)).join('')}</div>` : ''}
+      <div class="ayuda" style="text-align:center">Salen también en el calendario con 🩺. Al guardar podés pasarlas al calendario del celular.</div>`;
+  }
+
+  // =================== TAREAS
+  function filaTarea(t) {
+    const venc = t.fecha && t.fecha < HOY && !t.ok;
+    return `<div class="fila ${t.ok ? 'hecho' : ''}"><button class="circ ${t.ok ? 'ok' : ''}" data-acc="tareaOk" data-id="${t.id}" aria-label="Hecha">${t.ok ? I('check', 15) : ''}</button>
+      <div class="txt toca" data-acc="editTarea" data-id="${t.id}"><b>${esc(t.t)}</b>
+      ${t.fecha ? `<small class="${venc ? 'rojo' : ''}">${venc ? 'venció el ' + F.fechaCorta(t.fecha) : t.fecha === HOY ? 'para hoy' : 'para el ' + fechaChica(t.fecha)}</small>` : ''}${t.nota ? `<small>${esc(t.nota)}</small>` : ''}</div></div>`;
+  }
+  function pTareas() {
+    const pend = A.tareasPendientes(), hechas = A.E.tareas.filter(t => t.ok).sort((a, b) => a.hecha < b.hecha ? 1 : -1).slice(0, 20);
+    return volver() + cab('Tareas', 'lo que tengo que hacer') +
+      `<div class="card"><div class="card-t">${I('tareas', 18)} Pendientes (${pend.length})</div>
+        <form class="add-pend" data-acc="tareaAdd"><input class="in" name="t" placeholder="Nueva tarea…" enterkeyhint="done" autocomplete="off"><button class="btn chico" aria-label="Agregar">${I('mas_', 18)}</button></form>
+        <div class="ayuda" style="margin:0 0 4px">Para ponerle fecha, tocá la tarea.</div>
+        ${pend.map(filaTarea).join('') || '<div class="vacio">¡Nada pendiente!</div>'}</div>
+      ${hechas.length ? `<div class="card"><div class="card-t">${I('check', 18)} Hechas</div>${hechas.map(filaTarea).join('')}<div class="botones"><button class="btn peligro chico" data-acc="borrarHechas">${I('basura', 16)} Borrar las hechas</button></div></div>` : ''}`;
+  }
+  function hTarea(t) {
+    return () => `${btnCerrar}<h2>${t.id ? 'Tarea' : 'Nueva tarea'}</h2>
+      <label class="l" for="taT">Tarea</label><input class="in" id="taT" value="${esc(t.t || '')}" autocomplete="off" maxlength="160">
+      <label class="l" for="taF">Para cuándo (opcional)</label><input class="in" type="date" id="taF" value="${t.fecha || ''}">
+      <label class="l" for="taN">Nota</label><textarea class="in" id="taN" rows="2" placeholder="Opcional">${esc(t.nota || '')}</textarea>
+      <div class="error" id="taErr"></div>
+      <div class="botones"><button class="btn" data-acc="guardarTarea" data-id="${t.id || ''}">${I('check', 18)} Guardar</button>${t.id ? `<button class="btn peligro" data-acc="borrarTarea" data-id="${t.id}">${I('basura', 16)} Borrar</button>` : ''}</div>`;
+  }
+
+  // =================== NOTAS
+  function pNotas() {
+    const l = A.notasOrdenadas();
+    return volver() + cab('Notas', 'ideas, listas, lo que sea') +
+      `<div class="botones" style="margin:0 0 12px"><button class="btn" data-acc="editNota" data-id="">${I('mas_', 18)} Nueva nota</button></div>
+      <div class="notas-grid">${l.map(n => `<button class="nota-c c${n.color || 0}" data-acc="editNota" data-id="${n.id}">${n.fijada ? '<span class="nota-pin">📌</span>' : ''}
+        ${n.titulo ? `<b>${esc(n.titulo)}</b>` : ''}<span>${esc((n.texto || '').slice(0, 160))}${(n.texto || '').length > 160 ? '…' : ''}</span><small>${F.fechaCorta(n.mod.slice(0, 10))}</small></button>`).join('')}</div>
+      ${l.length ? '' : '<div class="vacio" style="margin-top:20px">Todavía no hay notas</div>'}`;
+  }
+  function hNota(n) {
+    return () => `${btnCerrar}<h2>${n.id ? 'Nota' : 'Nueva nota'}</h2>
+      <input class="in" id="noT" value="${esc(n.titulo || '')}" placeholder="Título" autocomplete="off" style="font-weight:600" maxlength="80">
+      <textarea class="in" id="noX" placeholder="Escribí acá…" style="min-height:200px;margin-top:10px">${esc(n.texto || '')}</textarea>
+      <div class="error" id="noErr"></div>
+      <div class="botones"><button class="btn" data-acc="guardarNota" data-id="${n.id || ''}">${I('check', 18)} Guardar</button>
+      ${n.id ? `<button class="btn sec" data-acc="fijarNota" data-id="${n.id}">📌 ${n.fijada ? 'Desfijar' : 'Fijar arriba'}</button><button class="btn peligro" data-acc="borrarNota" data-id="${n.id}" aria-label="Borrar">${I('basura', 16)}</button>` : ''}</div>`;
+  }
+
+  // =================== HÁBITOS
+  const EMOJIS = ['💧', '🚶', '📖', '🧘', '🍎', '😴', '💊', '🏋️', '🌿', '✍️', '📵', '🙏', '🧴', '🌱'];
+  const SUGERIDOS = [['Tomar 8 vasos de agua', '💧'], ['Caminar 30 minutos', '🚶'], ['Leer un rato', '📖'], ['Respirar / meditar', '🧘'], ['Comer fruta', '🍎'], ['Dormir temprano', '😴']];
+  function pHabitos() {
+    const H = A.E.habitos, hechos = H.filter(h => A.habitoHecho(h.id, HOY)).length;
+    const dias = []; for (let k = 6; k >= 0; k--) dias.push(F.sumar(HOY, -k));
+    const sug = SUGERIDOS.filter(([n]) => !H.some(h => h.nombre.toLowerCase() === n.toLowerCase()));
+    return volver() + cab('Hábitos', 'un día a la vez') +
+      (H.length ? `<div class="card hab-res"><b>${hechos}</b> de ${H.length} hechos hoy<div class="hab-barra"><div style="width:${hechos / H.length * 100}%"></div></div></div>` : '') +
+      H.map(h => { const ok = A.habitoHecho(h.id, HOY), r = A.racha(h.id, HOY);
+        return `<div class="card hab"><div class="hab-f"><span class="hab-e">${esc(h.emoji)}</span><div class="txt toca" data-acc="editHab" data-id="${h.id}"><b>${esc(h.nombre)}</b>
+          <small>${r ? `🔥 ${r} día${r > 1 ? 's' : ''} seguido${r > 1 ? 's' : ''}` : 'Empezá hoy'}</small></div>
+          <button class="hab-hoy ${ok ? 'ok' : ''}" data-acc="habDia" data-id="${h.id}" data-f="${HOY}" aria-label="Hecho hoy">${I('check', 24)}</button></div>
+          <div class="hab-dias">${dias.map(f => `<button class="${A.habitoHecho(h.id, f) ? 'ok' : ''} ${f === HOY ? 'hoy' : ''}" data-acc="habDia" data-id="${h.id}" data-f="${f}"><small>${DIAS3[F.diaSemana(f)].slice(0, 2)}</small><i>${F.aD(f).getUTCDate()}</i></button>`).join('')}</div></div>`; }).join('') +
+      (sug.length ? `<div class="card"><div class="card-t">💡 Ideas${H.length ? '' : ' para empezar'}</div><div class="pills">${sug.map(([n, e]) => `<button data-acc="habSug" data-n="${esc(n)}" data-e="${e}">${e} ${esc(n)}</button>`).join('')}</div></div>` : '') +
+      `<div class="botones" style="justify-content:center"><button class="btn" data-acc="editHab" data-id="">${I('mas_', 18)} Nuevo hábito</button></div>
+      <div class="ayuda" style="text-align:center">Tocá los días de abajo para marcar o desmarcar días anteriores.</div>`;
+  }
+  let habEmoji = '🌱';
+  function hHabito(h) {
+    return () => `${btnCerrar}<h2>${h.id ? 'Hábito' : 'Nuevo hábito'}</h2>
+      <label class="l" for="haN">Hábito</label><input class="in" id="haN" value="${esc(h.nombre || '')}" placeholder="Ej.: Tomar agua, caminar, leer" autocomplete="off" maxlength="40">
+      <label class="l">Dibujito</label><div class="pills" id="haE">${EMOJIS.map(e => `<button type="button" data-acc="habEmoji" data-e="${e}" class="${e === habEmoji ? 'act' : ''}" style="font-size:20px;padding:6px 10px">${e}</button>`).join('')}</div>
+      <div class="error" id="haErr"></div>
+      <div class="botones"><button class="btn" data-acc="guardarHab" data-id="${h.id || ''}">${I('check', 18)} Guardar</button>${h.id ? `<button class="btn peligro" data-acc="borrarHab" data-id="${h.id}">${I('basura', 16)} Borrar</button>` : ''}</div>`;
+  }
+
   function pInicio() {
     const nombre = (A.E.cfg.nombre || '').trim(), h = new Date().getHours();
     const saludo = (h < 13 ? 'Buen día' : h < 20 ? 'Buenas tardes' : 'Buenas noches') + (nombre ? ', ' + esc(nombre.split(' ')[0]) : '');
     const prox = A.proximasNuestras(F.sumar(HOY, 1), 3, mia()), g = A.gastosMes(HOY.slice(0, 7));
-    return cab(saludo, esc(F.fechaLarga(HOY)).replace(/^./, c => c.toUpperCase())) + instalarAviso() + turnoCard() +
+    return cab(saludo, esc(F.fechaLarga(HOY)).replace(/^./, c => c.toUpperCase())) + instalarAviso() + turnoCard() + grillaInicio() +
       `<div class="card"><div class="card-t">${I('guardia', 18)} Próximas guardias${mia() ? ' de ' + esc(nombreF(mia())) : ''}</div>
         ${prox.map(filaGuardia).join('') || '<div class="vacio">No hay guardias cargadas</div>'}
         <div class="botones"><button class="btn sec chico" data-acc="ir" data-p="turnos">${I('mes', 17)} Ver el calendario</button></div></div>
@@ -93,8 +209,7 @@
       <div class="dos-cards">
         <button class="card mini-card azul" data-acc="ir" data-p="gastos"><span class="mc-t">${I('plata', 18)} Gastos de ${F.MESES[+HOY.slice(5, 7) - 1]}</span><b>${plata(g.total)}</b><small>${g.lista.length} gasto${g.lista.length === 1 ? '' : 's'}</small></button>
         <button class="card mini-card verde" data-acc="ir" data-p="vacaciones"><span class="mc-t">${I('playa', 18)} Vacaciones</span><b>${A.resumenVac(+HOY.slice(0, 4)).quedan} días</b><small>me quedan</small></button></div>
-      <div class="card vac-ini" data-acc="ir" data-p="vacaciones">${vacEstado()}</div>
-      <button class="fab" data-acc="nuevoGasto" aria-label="Anotar un gasto">${I('mas_', 26)}<span>Gasto</span></button>`;
+      <div class="card vac-ini" data-acc="ir" data-p="vacaciones">${vacEstado()}</div>`;
   }
 
   // =================== TURNOS
@@ -389,11 +504,13 @@
 
   // =================== pintar
   const PANT = { inicio: ['Inicio', 'inicio', pInicio], turnos: ['Turnos', 'mes', pTurnos], gastos: ['Gastos', 'plata', pGastos], vacaciones: ['Vacaciones', 'playa', pVacaciones], mas: ['Más', 'mas', pMas] };
+  const OTRAS = { midia: pMiDia, citas: pCitas, tareas: pTareas, notas: pNotas, habitos: pHabitos };
   function pintar() {
     HOY = F.hoyLocal();
-    if (!PANT[V.pant]) V.pant = 'inicio';
-    $('#main').innerHTML = PANT[V.pant][2](); enganchar($('#main'));
-    $('#tabs').innerHTML = '<div class="in-tabs">' + Object.entries(PANT).map(([k, v]) => `<button class="${k === V.pant ? 'act' : ''}" data-acc="ir" data-p="${k}">${I(v[1], 23)}<span>${v[0]}</span></button>`).join('') + '</div>';
+    if (!PANT[V.pant] && !OTRAS[V.pant]) V.pant = 'inicio';
+    $('#main').innerHTML = (PANT[V.pant] ? PANT[V.pant][2] : OTRAS[V.pant])(); enganchar($('#main'));
+    const tab = PANT[V.pant] ? V.pant : 'inicio';
+    $('#tabs').innerHTML = '<div class="in-tabs">' + Object.entries(PANT).map(([k, v]) => `<button class="${k === tab ? 'act' : ''}" data-acc="ir" data-p="${k}">${I(v[1], 23)}<span>${v[0]}</span></button>`).join('') + '</div>';
     enganchar($('#tabs'));
   }
   function ir(p) { V.pant = p; try { sessionStorage.setItem('roma_pant', p); } catch (e) {} pintar(); window.scrollTo(0, 0); }
@@ -429,6 +546,31 @@
     gmes: d => { V.gmes = masMes(V.gmes, +d.d); pintar(); }, gmesHoy: () => { V.gmes = HOY.slice(0, 7); pintar(); },
     nuevoGasto: () => { gSel = { cat: 'comida', medio: 'Efectivo' }; abrir(hGasto({ fecha: V.pant === 'gastos' && V.gmes !== HOY.slice(0, 7) ? V.gmes + '-01' : HOY })); setTimeout(() => { const m = $('#gM'); m && m.focus(); }, 80); },
     editGasto: d => { const g = A.E.gastos.find(x => x.id === d.id); if (!g) return; gSel = { cat: g.cat, medio: g.medio }; abrir(hGasto(g)); },
+    irVista: d => { V.vista = d.v; if (d.v === 'mes') V.mes = HOY.slice(0, 7); if (d.v === 'semana') V.lunes = F.lunesDe(HOY); try { sessionStorage.setItem('roma_vista', d.v); } catch (e) {} ir('turnos'); },
+    // tareas
+    nuevaTarea: d => abrir(hTarea({ fecha: d.f || '' })),
+    editTarea: d => { const t = A.E.tareas.find(x => x.id === d.id); if (t) abrir(hTarea(t)); },
+    guardarTarea: d => { try { A.guardarTarea({ id: d.id || null, t: $('#taT').value, fecha: $('#taF').value, nota: $('#taN').value }); } catch (e) { $('#taErr').textContent = e.message; return; } cerrar(); repintar(); toast('Tarea guardada', true); },
+    borrarTarea: d => { A.borrarDe('tareas', d.id, 'la tarea borrada'); cerrar(); repintar(); toast('Tarea borrada', true); },
+    tareaOk: d => { const t = A.E.tareas.find(x => x.id === d.id); if (!t) return; A.tareaOk(d.id, !t.ok); repintar(); if (!t.ok) {} },
+    borrarHechas: () => { A.borrarHechas(); repintar(); toast('Hechas borradas', true); },
+    // notas
+    editNota: d => { const n = d.id ? A.E.notas.find(x => x.id === d.id) : {}; if (n) abrir(hNota(n)); if (!d.id) setTimeout(() => { const t = $('#noX'); t && t.focus(); }, 80); },
+    guardarNota: d => { try { A.guardarNota({ id: d.id || null, titulo: $('#noT').value, texto: $('#noX').value }); } catch (e) { $('#noErr').textContent = e.message; return; } cerrar(); repintar(); toast('Nota guardada', true); },
+    fijarNota: d => { A.fijarNota(d.id); cerrar(); repintar(); },
+    borrarNota: d => { A.borrarDe('notas', d.id, 'la nota borrada'); cerrar(); repintar(); toast('Nota borrada', true); },
+    // hábitos
+    habDia: d => { try { A.tildarHabito(d.id, d.f, !A.habitoHecho(d.id, d.f)); } catch (e) { return toast(e.message, false, true); } repintar(); },
+    habSug: d => { try { A.guardarHabito({ nombre: d.n, emoji: d.e }); } catch (e) { return toast(e.message, false, true); } repintar(); toast('Hábito agregado', true); },
+    editHab: d => { const h = d.id ? A.E.habitos.find(x => x.id === d.id) : {}; if (!h) return; habEmoji = h.emoji || '🌱'; abrir(hHabito(h)); },
+    habEmoji: (d, el) => { habEmoji = d.e; $$('#haE button').forEach(b => b.classList.toggle('act', b === el)); },
+    guardarHab: d => { try { A.guardarHabito({ id: d.id || null, nombre: $('#haN').value, emoji: habEmoji }); } catch (e) { $('#haErr').textContent = e.message; return; } cerrar(); repintar(); toast('Hábito guardado', true); },
+    borrarHab: d => { A.borrarHabito(d.id); cerrar(); repintar(); toast('Hábito borrado', true); },
+    // mi día
+    pend: d => { const dd = A.dia(d.f), p = (dd.pendientes || []).map((x, k) => k === +d.k ? { ...x, ok: !x.ok } : x); A.guardarDia(d.f, { pendientes: p }, 'el pendiente'); repintar(); },
+    pendX: d => { const dd = A.dia(d.f), p = (dd.pendientes || []).filter((x, k) => k !== +d.k); A.guardarDia(d.f, { pendientes: p }, 'el pendiente borrado'); repintar(); toast('Pendiente borrado', true); },
+    agua: d => { const dd = A.dia(d.f); A.guardarDia(d.f, { agua: dd.agua === +d.n ? +d.n - 1 : +d.n }, 'el agua'); repintar(); },
+    animo: d => { const dd = A.dia(d.f); A.guardarDia(d.f, { animo: dd.animo === +d.n ? 0 : +d.n }, 'el ánimo'); repintar(); },
     nuevaAnot: d => { aSel = { tipo: 'medico', anual: false }; abrir(hAnot({ fecha: d.f || HOY })); setTimeout(() => { const t = $('#aT'); t && t.focus(); }, 80); },
     editAnot: d => { const a = A.E.anot.find(x => x.id === d.id); if (!a) return; aSel = { tipo: a.tipo, anual: a.anual }; abrir(hAnot(a)); },
     aTipo: (d, el) => { aSel.tipo = d.v; $$('#hoja .tipos button').forEach(b => b.classList.toggle('act', b === el)); if (d.v === 'cumple') { const c = $('#aA'); if (c) c.checked = true; } },
@@ -496,6 +638,8 @@
         el.value = ''; repintar();
       });
       if (acc === 'inter') return el.addEventListener('change', () => ACC.inter(el.dataset, el));
+      if (el.tagName === 'FORM' && acc === 'tareaAdd') return el.addEventListener('submit', e => { e.preventDefault(); const t = el.t.value.trim(); if (!t) return; try { A.guardarTarea({ t }); } catch (x) { return toast(x.message, false, true); } repintar(); setTimeout(() => { const i = $('form[data-acc=tareaAdd] input'); i && i.focus(); }, 30); });
+      if (el.tagName === 'FORM' && acc === 'pendAdd') return el.addEventListener('submit', e => { e.preventDefault(); const t = el.t.value.trim().slice(0, 160); if (!t) return; const dd = A.dia(el.dataset.f); A.guardarDia(el.dataset.f, { pendientes: (dd.pendientes || []).concat([{ t, ok: false }]) }, 'el pendiente'); repintar(); setTimeout(() => { const i = $('form[data-acc=pendAdd] input'); i && i.focus(); }, 30); });
       el.addEventListener('click', e => { if (!ACC[acc]) return; if (el.tagName !== 'INPUT') e.preventDefault(); e.stopPropagation(); ACC[acc](el.dataset, el); });
     });
     raiz.querySelectorAll('#cPar').forEach(el => el.addEventListener('change', () => { selCambio.par = el.value; $$('#hoja .sug button').forEach(b => b.classList.toggle('act', b.dataset.g === el.value)); }));
@@ -507,6 +651,10 @@
       if (F.valida(vSel.desde || '') && !vSel.anioTocado) vSel.anio = A.anioSugerido(vSel.desde, vSel.id);
       abrir(hVac(vSel));
     }));
+    raiz.querySelectorAll('[data-dia]').forEach(el => {
+      el.addEventListener('change', () => { A.guardarDia(el.dataset.f, { [el.dataset.dia]: el.value.trim().slice(0, 2000) }, 'la nota'); toast('Guardado'); });
+      if (el.tagName === 'INPUT') el.addEventListener('keydown', e => { if (e.key === 'Enter') el.blur(); });
+    });
     raiz.querySelectorAll('#mNom').forEach(el => el.addEventListener('change', () => { A.setCfg('nombre', el.value.trim().slice(0, 40)); toast('Guardado'); }));
     raiz.querySelectorAll('#gM').forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ACC.guardarGasto(raiz.querySelector('[data-acc=guardarGasto]').dataset); } }));
   }
