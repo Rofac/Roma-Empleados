@@ -479,7 +479,7 @@
     licNueva: () => abrir(() => `${btnCerrar}<h2>Cargar clave nueva</h2><div class="ayuda">Código de este celular: <b>${RomaLic.equipo()}</b></div>
       <label class="l" for="licC">Clave que te pasó Rodrigo</label><textarea class="in" id="licC" rows="3" placeholder="ROM-2028…" autocomplete="off" autocapitalize="characters" spellcheck="false"></textarea>
       <div class="error" id="licErr"></div><div class="botones"><button class="btn" data-acc="licGuardar">Activar</button><button class="btn sec" data-acc="cerrar">Cancelar</button></div>`),
-    licGuardar: async () => { const err = await RomaLic.activar($('#licC').value); if (err) { $('#licErr').textContent = err; return; } cerrar(); repintar(); toast('Activada hasta el ' + RomaLic.fechaTxt(RomaLic.vence())); },
+    licGuardar: async () => { const err = await RomaLic.activar($('#licC').value); if (err) { $('#licErr').textContent = err; return; } cerrar(); repintar(); toast(RomaLic.vence() === '99991231' ? 'Activada sin vencimiento' : 'Activada hasta el ' + RomaLic.fechaTxt(RomaLic.vence())); },
     confirmarGuardar: () => { try { A.setConfirmado($('#cC').value); } catch (e) { $('#ccErr').textContent = e.message; return; } cerrar(); repintar(); toast('Guardado', true); },
     copia: async () => { const ok = await darArchivo('roma-copia-' + HOY + '.json', A.exportar(), 'application/json', true); if (ok) { A.setCfg('ultimaCopia', HOY); repintar(); toast('Copia guardada'); } },
   };
@@ -516,7 +516,7 @@
   window.RomaApp = { A, pintar, ir };
   // sólo anda si este celular está activado (clave de Rodrigo)
   RomaLic.revisar().then(ok => {
-    if (!ok) return RomaLic.pantalla(() => { pintar(); toast('¡Listo! App activada hasta el ' + RomaLic.fechaTxt(RomaLic.vence())); });
+    if (!ok) return RomaLic.pantalla(() => { pintar(); toast('¡Listo! ' + (RomaLic.vence() === '99991231' ? 'App activada sin vencimiento' : 'App activada hasta el ' + RomaLic.fechaTxt(RomaLic.vence()))); });
     pintar();
     const n = RomaLic.dias(); if (n != null && n <= 20) toast(n === 0 ? 'La activación vence HOY: pedile una clave nueva a Rodrigo' : 'La activación vence en ' + n + ' día' + (n > 1 ? 's' : '') + ': pedile una clave nueva a Rodrigo', false, true);
   });
