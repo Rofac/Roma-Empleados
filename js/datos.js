@@ -35,6 +35,10 @@
     { id: 'servicios', nombre: 'Servicios', emoji: '💡' }, { id: 'salud', nombre: 'Salud', emoji: '💊' }, { id: 'ropa', nombre: 'Ropa', emoji: '👕' },
     { id: 'salidas', nombre: 'Salidas', emoji: '🎉' }, { id: 'casa', nombre: 'Casa', emoji: '🏠' }, { id: 'otros', nombre: 'Otros', emoji: '📦' },
   ];
+  const TIPOS = [
+    { id: 'medico', nombre: 'Turno médico', emoji: '🩺' }, { id: 'tramite', nombre: 'Trámite', emoji: '📄' }, { id: 'cumple', nombre: 'Cumpleaños', emoji: '🎂' },
+    { id: 'salida', nombre: 'Salida / evento', emoji: '🎉' }, { id: 'recordar', nombre: 'Recordatorio', emoji: '🔔' }, { id: 'otro', nombre: 'Otro', emoji: '📌' },
+  ];
   const MEDIOS = ['Efectivo', 'Débito', 'Crédito', 'Transferencia', 'Mercado Pago'];
 
   // ---------- estado inicial: el listado de turnos (rotación de 8, empieza el 1/11/2026 con Cristal), igual que en las otras apps
@@ -55,6 +59,7 @@
       confirmadoHasta: '2027-12-31', mig2027: 1,
       cambios: {},          // fecha → { f: farmacia que hace la guardia, nota, par: fecha del intercambio }
       gastos: [],           // { id, fecha, monto, cat, desc, medio }
+      anot: [],             // mis anotaciones: { id, fecha, hora, tipo, titulo, nota, anual } (turno médico, trámite, cumpleaños…)
       vac: { porAnio: 14, anios: {}, lista: [] },   // anios: { '2026': 21 } si un año le corresponden otros días; lista: { id, desde, hasta, anio, nota }
       cfg: { verTodas: true, nombre: '', mia: 'ambas' },
     };
@@ -62,7 +67,7 @@
 
   function crear(guardado) {
     let E = guardado && typeof guardado === 'object' && Array.isArray(guardado.farmacias) ? guardado : inicial();
-    E.cambios = E.cambios || {}; E.gastos = E.gastos || []; E.cfg = E.cfg || {};
+    E.cambios = E.cambios || {}; E.gastos = E.gastos || []; E.anot = E.anot || []; E.cfg = E.cfg || {};
     E.vac = E.vac || {}; E.vac.lista = E.vac.lista || []; E.vac.anios = E.vac.anios || {}; if (!(E.vac.porAnio >= 0)) E.vac.porAnio = 14;
     if (!E.cfg.mia) E.cfg.mia = 'ambas';
     const atras = [];                                    // para "Deshacer"
@@ -267,6 +272,40 @@
     function setConfirmado(f) { if (!valida(f)) throw new Error('Fecha inválida'); antes('la fecha confirmada'); E.confirmadoHasta = f; guardar(); }
     function setCfg(k, v) { E.cfg[k] = v; guardar(); }
 
+    // ---------- mis anotaciones (turno médico, trámite, cumpleaños, lo que quieran)
+    const tipo = id => TIPOS.find(t => t.id === id) || TIPOS[TIPOS.length - 1];
+    function guardarAnot(a) {
+      const titulo = txt(a.titulo, 80); if (!titulo) throw new Error('Escribí qué es (ej. Dentista, Cumple de mamá)');
+      if (!valida(a.fecha)) throw new Error('Elegí la fecha');
+      if (a.hora && !/^([01]\d|2[0-3]):[0-5]\d$/.test(a.hora)) throw new Error('Hora inválida');
+      const x = { id: a.id || nuevoId(), fecha: a.fecha, hora: a.hora || '', tipo: tipo(a.tipo).id, titulo, nota: txt(a.nota, 400), anual: !!a.anual };
+      antes(a.id ? 'el cambio de la anotación' : 'la anotación nueva');
+      const i = E.anot.findIndex(y => y.id === x.id);
+      if (i >= 0) E.anot[i] = x; else E.anot.push(x);
+      guardar(); return x;
+    }
+    function borrarAnot(id) { const i = E.anot.findIndex(y => y.id === id); if (i < 0) return; antes('la anotación borrada'); E.anot.splice(i, 1); guardar(); }
+    const ordAnot = (a, b) => (a.hora || '99') < (b.hora || '99') ? -1 : (a.hora || '99') > (b.hora || '99') ? 1 : (a.titulo < b.titulo ? -1 : 1);
+    // las anuales (cumpleaños) se repiten todos los años desde la fecha cargada; el 29/2 cae el 28/2 los años que no es bisiesto
+    function caeEl(a, f) {
+      if (a.fecha === f) return true;
+      if (!a.anual || f < a.fecha) return false;
+      const md = a.fecha.slice(5), anio = +f.slice(0, 4);
+      const mdAnio = md === '02-29' && !(anio % 4 === 0 && (anio % 100 !== 0 || anio % 400 === 0)) ? '02-28' : md;
+      return f.slice(5) === mdAnio;
+    }
+    const anotDe = f => E.anot.filter(a => caeEl(a, f)).sort(ordAnot);
+    function proximasAnot(desde, dias, cuantas) {
+      const out = []; let f = desde;
+      for (let k = 0; k <= dias && out.length < cuantas; k++, f = sumar(f, 1)) anotDe(f).forEach(a => out.length < cuantas && out.push({ ...a, cuando: f }));
+      return out;
+    }
+    function icsAnot(a) {
+      let fecha = a.fecha;   // las anuales arrancan en la próxima vez que caen (así el celular no arranca en 1990)
+      if (a.anual) { let f = hoyLocal(); for (let k = 0; k < 400; k++, f = sumar(f, 1)) if (caeEl(a, f)) { fecha = f; break; } }
+      return ics([{ uid: 'anot-' + a.id, titulo: tipo(a.tipo).emoji + ' ' + a.titulo, fecha, hora: a.hora, nota: a.nota, anual: a.anual, aviso: a.hora ? '-PT2H' : '-PT15H' }]);
+    }
+
     // ---------- copia de seguridad
     function exportar() { return JSON.stringify({ app: 'rofac-roma-empleado', guardado: new Date().toISOString(), datos: E }, null, 1); }
     function importar(texto) {
@@ -284,7 +323,11 @@
       const sello = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z';
       for (const e of eventos) {
         L.push('BEGIN:VEVENT', 'UID:' + e.uid + '@rofac-roma', 'DTSTAMP:' + sello, 'SUMMARY:' + icsTxt(e.titulo));
-        L.push('DTSTART;VALUE=DATE:' + sinGuion(e.fecha), 'DTEND;VALUE=DATE:' + sinGuion(sumar(e.hasta || e.fecha, 1)));
+        if (e.hora) {
+          const [h, m] = e.hora.split(':').map(Number), fin = Math.min(h * 60 + m + 60, 23 * 60 + 59), dos = n => String(n).padStart(2, '0');
+          L.push('DTSTART:' + sinGuion(e.fecha) + 'T' + dos(h) + dos(m) + '00', 'DTEND:' + sinGuion(e.fecha) + 'T' + dos(Math.floor(fin / 60)) + dos(fin % 60) + '00');
+        } else L.push('DTSTART;VALUE=DATE:' + sinGuion(e.fecha), 'DTEND;VALUE=DATE:' + sinGuion(sumar(e.hasta || e.fecha, 1)));
+        if (e.anual) L.push('RRULE:FREQ=YEARLY');
         if (e.nota) L.push('DESCRIPTION:' + icsTxt(e.nota));
         if (e.aviso) L.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsTxt(e.titulo), 'TRIGGER:' + e.aviso, 'END:VALARM');
         L.push('END:VEVENT');
@@ -303,7 +346,7 @@
     return {
       E, farmacia, esNuestra, nuestras, oficial, info, guardiasNuestras, proximasNuestras, resumenMes,
       cambiar, volverOriginal, guardarFarmacias, nuevoListado, borrarListado, setConfirmado, setCfg, exportar, importar, icsGuardias, icsVac, deshacer,
-      cat, guardarGasto, borrarGasto, gastosMes,
+      cat, guardarGasto, borrarGasto, gastosMes, tipo, guardarAnot, borrarAnot, anotDe, proximasAnot, icsAnot,
       diasVac, corresponden, tomados, resumenVac, anioSugerido, revisarVac, guardarVac, borrarVac, setCorresponden, vacDe, proximasVac,
       hayDeshacer: () => atras.length > 0, set alGuardar(fn) { alGuardar = fn; },
     };
@@ -315,6 +358,6 @@
   }
 
   const F = { aD, aF, sumar, entre, diaSemana, lunesDe, hoyLocal, finDeMes, fechaLarga, fechaCorta, valida, MESES, DIAS };
-  const api = { crear, cargar, inicial, F, CLAVE, CATS, MEDIOS, numero };
+  const api = { crear, cargar, inicial, F, CLAVE, CATS, MEDIOS, TIPOS, numero };
   if (typeof module !== 'undefined') module.exports = api; else raiz.Roma = api;
 })(typeof window !== 'undefined' ? window : globalThis);

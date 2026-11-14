@@ -9,6 +9,10 @@ QUÉ TIENE (cada empleado la usa en SU celular: sus datos quedan sólo ahí)
   Vista Mes, Semana y "Mis guardias". Tocando un día: "Cambiar guardia" (ceder, tomar o intercambio) y "Volver al listado".
   Cada empleado puede cambiar guardias en su celular (no se ve en los otros celulares).
   "Pasar guardias al calendario del celular" las agrega al calendario con aviso la noche anterior.
+- Mis anotaciones (como en Mi Agenda): cada uno anota sus cosas en el calendario: turno médico, trámite, cumpleaños,
+  salida, recordatorio u otro, con fecha, hora opcional y nota. Los cumpleaños pueden repetirse todos los años.
+  Se ven en el Inicio ("Lo que tengo anotado"), en el calendario (el emoji en el día), en la semana y al tocar un día
+  ("Anotar algo este día"). "Guardar y pasar al calendario" la agrega al calendario del celular con aviso.
 - Gastos: sus gastos personales. Cuánto, en qué (comida, súper, transporte, servicios, salud, ropa, salidas, casa, otros),
   fecha y cómo pagó. Total del mes, comparado con el mes anterior, por categoría y por medio de pago. Todo con "Deshacer".
 - Vacaciones: días corridos. 14 por año (con el lápiz se cambia: 21, 28 o 35 según antigüedad, desde un año en adelante

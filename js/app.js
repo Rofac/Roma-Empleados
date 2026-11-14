@@ -64,6 +64,17 @@
       <div class="txt"><b>${esc(nombreF(i.turno))}</b> ${i.tomada ? '<span class="chip tom">cambio</span>' : ''} ${i.estimado ? '<span class="chip est">a confirmar</span>' : ''}
       ${i.cambio && i.cambio.nota ? `<small>${esc(i.cambio.nota)}</small>` : ''}${A.vacDe(i.fecha) ? '<small>🏖 estás de vacaciones</small>' : ''}</div><div class="falta">${faltan(i.fecha)}</div></div>`;
   }
+  // anotaciones (turno médico, trámite, cumpleaños…)
+  function filaAnot(a, conFecha) {
+    const t = A.tipo(a.tipo), f = a.cuando || a.fecha;
+    return `<div class="fila toca" data-acc="editAnot" data-id="${a.id}"><span class="g-emo">${t.emoji}</span><div class="txt"><b>${esc(a.titulo)}</b>
+      <small>${conFecha ? fechaChica(f) + (a.hora ? ' · ' : '') : ''}${a.hora ? a.hora + ' h' : (conFecha ? '' : 'todo el día')}${a.nota ? ' · ' + esc(a.nota) : ''}</small></div>${conFecha ? `<div class="falta">${faltan(f)}</div>` : ''}</div>`;
+  }
+  function cardAnot(lista, titulo, vacio, fNueva, conFecha = true) {
+    return `<div class="card"><div class="card-t">${I('cal', 18)} ${titulo}</div>
+      ${lista.map(a => filaAnot(a, conFecha)).join('') || `<div class="vacio">${vacio}</div>`}
+      <div class="botones"><button class="btn sec chico" data-acc="nuevaAnot" data-f="${fNueva}">${I('mas_', 17)} Anotar algo</button></div></div>`;
+  }
   function vacEstado() {
     const ahora = A.vacDe(HOY), prox = A.proximasVac(HOY), r = A.resumenVac(+HOY.slice(0, 4));
     if (ahora) { const vuelve = F.sumar(ahora.hasta, 1); return `🏖 <b>¡Estás de vacaciones!</b> Volvés el ${DIAS3[F.diaSemana(vuelve)]} ${F.fechaCorta(vuelve)}`; }
@@ -78,6 +89,7 @@
       `<div class="card"><div class="card-t">${I('guardia', 18)} Próximas guardias${mia() ? ' de ' + esc(nombreF(mia())) : ''}</div>
         ${prox.map(filaGuardia).join('') || '<div class="vacio">No hay guardias cargadas</div>'}
         <div class="botones"><button class="btn sec chico" data-acc="ir" data-p="turnos">${I('mes', 17)} Ver el calendario</button></div></div>
+      ${cardAnot(A.proximasAnot(HOY, 60, 4), 'Lo que tengo anotado', 'Nada anotado para los próximos días', HOY)}
       <div class="dos-cards">
         <button class="card mini-card azul" data-acc="ir" data-p="gastos"><span class="mc-t">${I('plata', 18)} Gastos de ${F.MESES[+HOY.slice(5, 7) - 1]}</span><b>${plata(g.total)}</b><small>${g.lista.length} gasto${g.lista.length === 1 ? '' : 's'}</small></button>
         <button class="card mini-card verde" data-acc="ir" data-p="vacaciones"><span class="mc-t">${I('playa', 18)} Vacaciones</span><b>${A.resumenVac(+HOY.slice(0, 4)).quedan} días</b><small>me quedan</small></button></div>
@@ -100,12 +112,12 @@
     let hayEst = false;
     for (let f = ini; f <= fin; f = F.sumar(f, 1)) {
       const i = A.info(f); if (i.estimado) hayEst = true;
-      const nombre = A.farmacia(i.turno).corto || nombreF(i.turno), vac = A.vacDe(f);
+      const nombre = A.farmacia(i.turno).corto || nombreF(i.turno), vac = A.vacDe(f), an = A.anotDe(f);
       let cont = '';
       if (i.cedida) cont = `<span class="f x tachado">${esc(A.farmacia(i.oficial).corto)}</span><span class="f">${todas ? esc(nombre) : ''}</span>`;
       else if (i.nuestra || todas) cont = `<span class="f">${esc(nombre)}</span>`;
       celdas += `<button class="c ${i.nuestra ? 'nuestra ' + claseF(i.turno) : ''} ${f === HOY ? 'hoy' : ''} ${i.estimado ? 'est' : ''} ${vac ? 'vac' : ''}" data-acc="dia" data-f="${f}" aria-label="${esc(F.fechaLarga(f) + ': ' + nombreF(i.turno))}">
-        <span class="n">${F.aD(f).getUTCDate()}</span>${cont}${vac ? '<span class="vac-m">🏖</span>' : ''}${i.cambio && i.cambio.f !== i.oficial ? '<span class="ico-cambio">⇄</span>' : ''}</button>`;
+        <span class="n">${F.aD(f).getUTCDate()}</span>${cont}${vac ? '<span class="vac-m">🏖</span>' : ''}${an.length ? `<span class="anot-m">${A.tipo(an[0].tipo).emoji}${an.length > 1 ? '<sup>' + an.length + '</sup>' : ''}</span>` : ''}${i.cambio && i.cambio.f !== i.oficial ? '<span class="ico-cambio">⇄</span>' : ''}</button>`;
     }
     const resto = (7 - (vacias + F.finDeMes(a, m)) % 7) % 7;
     for (let k = 0; k < resto; k++) celdas += `<div class="c fuera"></div>`;
@@ -117,8 +129,15 @@
         ${V.mes !== HOY.slice(0, 7) ? `<div style="text-align:center;margin-top:10px"><button class="btn sec chico" data-acc="mesHoy">Volver a este mes</button></div>` : ''}</div>
       <div class="card"><div class="card-t">${I('guardia', 18)} Este mes: ${r.total} guardias nuestras</div><div class="chips">${porF}
         ${r.cedidas ? `<span class="chip ced">${r.cedidas} cedida${r.cedidas > 1 ? 's' : ''}</span>` : ''}${r.tomadas ? `<span class="chip tom">${r.tomadas} tomada${r.tomadas > 1 ? 's' : ''}</span>` : ''}</div>
-        <div class="ayuda">Tocá un día para ver quién está de turno o para cambiar una guardia. 🏖 = tus vacaciones.</div></div>`;
+        <div class="ayuda">Tocá un día para ver quién está de turno, cambiar una guardia o anotar algo tuyo. 🏖 = tus vacaciones.</div></div>
+      ${cardAnot(anotMes(a, m), 'Mis anotaciones de ' + F.MESES[m - 1], 'No anotaste nada este mes', V.mes === HOY.slice(0, 7) ? HOY : ini)}`;
   }
+  function anotMes(a, m) {
+    const out = [], fin = finMes(a, m);
+    for (let f = `${a}-${String(m).padStart(2, '0')}-01`; f <= fin; f = F.sumar(f, 1)) A.anotDe(f).forEach(x => out.push({ ...x, cuando: f }));
+    return out;
+  }
+  const finMes = (a, m) => `${a}-${String(m).padStart(2, '0')}-${String(F.finDeMes(a, m)).padStart(2, '0')}`;
   function vSemana() {
     const l = V.lunes, dom = F.sumar(l, 6), dl = F.aD(l), dd = F.aD(dom);
     const titulo = dl.getUTCMonth() === dd.getUTCMonth() ? `${dl.getUTCDate()} al ${dd.getUTCDate()} de ${F.MESES[dd.getUTCMonth()]}` : `${dl.getUTCDate()} ${F.MESES[dl.getUTCMonth()].slice(0, 3)} al ${dd.getUTCDate()} ${F.MESES[dd.getUTCMonth()].slice(0, 3)}`;
@@ -129,7 +148,8 @@
         : `<span class="tenue">De turno:</span> ${esc(nombreF(i.turno))}${i.cedida ? ' <span class="chip ced">cedida</span>' : ''}`;
       filas += `<div class="dia-sem ${f === HOY ? 'hoy' : ''} ${i.nuestra ? 'nuestra ' + claseF(i.turno) : ''}" data-acc="dia" data-f="${f}"><div class="izq"><small>${F.DIAS[d.getUTCDay()].slice(0, 3)}</small><b>${d.getUTCDate()}</b></div>
         <div class="der"><div>${tur}${i.estimado ? ' <span class="chip est">a confirmar</span>' : ''}</div>
-        ${i.cambio && i.cambio.nota ? `<small class="tenue">✎ ${esc(i.cambio.nota)}</small>` : ''}${vac ? '<small>🏖 vacaciones</small>' : ''}</div></div>`;
+        ${i.cambio && i.cambio.nota ? `<small class="tenue">✎ ${esc(i.cambio.nota)}</small>` : ''}${vac ? '<small>🏖 vacaciones</small>' : ''}
+        ${A.anotDe(f).map(x => `<small class="anot-s">${A.tipo(x.tipo).emoji} ${x.hora ? '<b>' + x.hora + '</b> ' : ''}${esc(x.titulo)}</small>`).join('')}</div></div>`;
     }
     const n = A.guardiasNuestras(l, dom).length;
     return navBar('sem', -7, `<h2 style="font-size:17px">${esc(titulo)}</h2><div class="sub">${n ? n + (n > 1 ? ' guardias nuestras' : ' guardia nuestra') : 'sin guardias nuestras'}</div>`, 7) +
@@ -161,7 +181,10 @@
           <div class="botones" style="margin-top:10px"><button class="btn chico" data-acc="cambiar" data-f="${f}">${I('cambio', 17)} Cambiar guardia</button>
           ${i.cambio ? `<button class="btn sec chico" data-acc="original" data-f="${f}">Volver al listado</button>` : ''}</div></div>
         ${vac ? `<div class="bloque">🏖 Estás de vacaciones (del ${F.fechaCorta(vac.desde)} al ${F.fechaCorta(vac.hasta)})</div>` : ''}
-        <div class="ayuda">Los cambios quedan guardados sólo en tu celular.</div>`;
+        <div class="bloque"><div class="tenue" style="font-size:13px">Mis anotaciones</div>
+          ${A.anotDe(f).map(x => filaAnot(x, false)).join('') || '<div class="vacio" style="font-size:14px;padding:6px 0">Nada anotado</div>'}
+          <div class="botones" style="margin-top:8px"><button class="btn sec chico" data-acc="nuevaAnot" data-f="${f}">${I('mas_', 17)} Anotar algo este día</button></div></div>
+        <div class="ayuda">Todo queda guardado sólo en tu celular.</div>`;
     };
   }
   function hCambiar(f, sel) {
@@ -218,6 +241,21 @@
       <div class="error" id="gErr"></div>
       <div class="botones"><button class="btn grande" data-acc="guardarGasto" data-id="${g.id || ''}">${I('check', 18)} Guardar</button>
       ${g.id ? `<button class="btn peligro" data-acc="borrarGasto" data-id="${g.id}">${I('basura', 16)} Borrar</button>` : ''}</div>`;
+  }
+
+  let aSel = {};
+  function hAnot(a) {
+    return () => `${btnCerrar}<h2>${a.id ? 'Mi anotación' : 'Anotar algo'}</h2>
+      <label class="l">¿Qué es?</label><div class="pills tipos">${Roma.TIPOS.map(t => `<button type="button" class="${aSel.tipo === t.id ? 'act' : ''}" data-acc="aTipo" data-v="${t.id}">${t.emoji} ${esc(t.nombre)}</button>`).join('')}</div>
+      <label class="l" for="aT">Título</label><input class="in" id="aT" value="${esc(a.titulo || '')}" placeholder="Ej.: Dentista, Cumple de mamá, Pagar el auto…" autocomplete="off" maxlength="80">
+      <div class="dos"><div><label class="l" for="aF">Fecha</label><input class="in" type="date" id="aF" value="${a.fecha || HOY}"></div>
+        <div><label class="l" for="aH">Hora (opcional)</label><input class="in" type="time" id="aH" value="${a.hora || ''}"></div></div>
+      <label class="chk"><input type="checkbox" id="aA" ${aSel.anual ? 'checked' : ''}> Se repite todos los años <small class="tenue">(cumpleaños, aniversarios)</small></label>
+      <label class="l" for="aN">Nota (opcional)</label><textarea class="in" id="aN" rows="2" maxlength="400" placeholder="Dirección, qué llevar, teléfono…">${esc(a.nota || '')}</textarea>
+      <div class="error" id="aErr"></div>
+      <div class="botones"><button class="btn grande" data-acc="guardarAnot" data-id="${a.id || ''}">${I('check', 18)} Guardar</button>
+      <button class="btn sec" data-acc="guardarAnot" data-id="${a.id || ''}" data-ics="1">${I('cal', 17)} Guardar y pasar al calendario</button>
+      ${a.id ? `<button class="btn peligro" data-acc="borrarAnot" data-id="${a.id}">${I('basura', 16)} Borrar</button>` : ''}</div>`;
   }
 
   // =================== VACACIONES
@@ -391,6 +429,16 @@
     gmes: d => { V.gmes = masMes(V.gmes, +d.d); pintar(); }, gmesHoy: () => { V.gmes = HOY.slice(0, 7); pintar(); },
     nuevoGasto: () => { gSel = { cat: 'comida', medio: 'Efectivo' }; abrir(hGasto({ fecha: V.pant === 'gastos' && V.gmes !== HOY.slice(0, 7) ? V.gmes + '-01' : HOY })); setTimeout(() => { const m = $('#gM'); m && m.focus(); }, 80); },
     editGasto: d => { const g = A.E.gastos.find(x => x.id === d.id); if (!g) return; gSel = { cat: g.cat, medio: g.medio }; abrir(hGasto(g)); },
+    nuevaAnot: d => { aSel = { tipo: 'medico', anual: false }; abrir(hAnot({ fecha: d.f || HOY })); setTimeout(() => { const t = $('#aT'); t && t.focus(); }, 80); },
+    editAnot: d => { const a = A.E.anot.find(x => x.id === d.id); if (!a) return; aSel = { tipo: a.tipo, anual: a.anual }; abrir(hAnot(a)); },
+    aTipo: (d, el) => { aSel.tipo = d.v; $$('#hoja .tipos button').forEach(b => b.classList.toggle('act', b === el)); if (d.v === 'cumple') { const c = $('#aA'); if (c) c.checked = true; } },
+    guardarAnot: d => {
+      let a; try { a = A.guardarAnot({ id: d.id || null, tipo: aSel.tipo, titulo: $('#aT').value, fecha: $('#aF').value, hora: $('#aH').value, anual: $('#aA').checked, nota: $('#aN').value }); }
+      catch (e) { $('#aErr').textContent = e.message; return; }
+      cerrar(); repintar(); toast(d.id ? 'Anotación guardada' : 'Anotado', true);
+      if (d.ics) alCalendario('anotacion.ics', A.icsAnot(a));
+    },
+    borrarAnot: d => { A.borrarAnot(d.id); cerrar(); repintar(); toast('Anotación borrada', true); },
     gCat: (d, el) => { gSel.cat = d.v; $$('#hoja .cats button').forEach(b => b.classList.toggle('act', b === el)); },
     guardarGasto: d => {
       let g; try { g = A.guardarGasto({ id: d.id || null, monto: $('#gM').value, cat: gSel.cat, desc: $('#gD').value, fecha: $('#gF').value, medio: $('#gP').value }); }
