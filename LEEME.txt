@@ -1,0 +1,57 @@
+FARMACIA ROMA · App para los empleados (RoFac v1.0) — app de celular, con ACTIVACIÓN por celular
+=================================================================================
+
+QUÉ TIENE (cada empleado la usa en SU celular: sus datos quedan sólo ahí)
+- Inicio: quién está de turno hoy, las próximas guardias de Roma y Roma II, lo gastado en el mes y los días de
+  vacaciones que le quedan. Botón "+ Gasto" para anotar rápido.
+- Turnos: el mismo diagrama de turnos que Mi Agenda y Pagos Farmacia (rotación de 8 farmacias desde el 1/11/2026,
+  CONFIRMADO HASTA EL 31/12/2027; después "a confirmar", rayado). Roma en VERDE y Roma II en AZUL, como el logo.
+  Vista Mes, Semana y "Mis guardias". Tocando un día: "Cambiar guardia" (ceder, tomar o intercambio) y "Volver al listado".
+  Cada empleado puede cambiar guardias en su celular (no se ve en los otros celulares).
+  "Pasar guardias al calendario del celular" las agrega al calendario con aviso la noche anterior.
+- Gastos: sus gastos personales. Cuánto, en qué (comida, súper, transporte, servicios, salud, ropa, salidas, casa, otros),
+  fecha y cómo pagó. Total del mes, comparado con el mes anterior, por categoría y por medio de pago. Todo con "Deshacer".
+- Vacaciones: días corridos. 14 por año (con el lápiz se cambia: 21, 28 o 35 según antigüedad, desde un año en adelante
+  o sólo ese año). Corresponden / tomé / quedan. Si anota más de lo que le queda, avisa antes de guardar.
+  Las de enero a abril se proponen a cuenta del año anterior si le quedaban días. En el calendario de turnos sus
+  vacaciones se ven con 🏖. "Al calendario" las pasa al calendario del celular.
+- Más: su nombre (para saludarlo), en qué farmacia trabaja (Roma, Roma II o las dos: filtra "Mis guardias"
+  y lo que se pasa al calendario), listado de turnos nuevo, fecha confirmada, farmacias, copia de seguridad.
+
+ACTIVACIÓN (para que sólo la usen tus empleados)
+- La primera vez que la abren, la app muestra el CÓDIGO DE ESE CELULAR (ej. 7F3A-91C2-04BD) y no deja usarla hasta activarla.
+  Con el botón "Mandar por WhatsApp" te lo mandan.
+- Vos abrís generar_licencia_apps.py > opción 5 "Farmacia Roma (empleados)" > nombre del empleado (sólo para que te
+  acuerdes) > el código > Enter (= vence en un año). Le mandás la clave entera (empieza con ROM-).
+- La pegan en "Clave que te pasó Rodrigo" > Activar. Esa clave sirve SÓLO en ese celular: si la reenvían, en otro no anda.
+- 20 días antes de vencer les avisa al abrir. Para renovar: Más > Activación > "Mandar código" y "Cargar clave nueva".
+  Si se vence, la app se traba hasta que carguen la clave nueva, pero NO se borra nada de lo que tenían.
+- Si alguien deja de trabajar, no le renovás y al vencer deja de andarle.
+- IPHONE: que primero la agreguen a inicio y la activen DESDE EL ÍCONO (Safari y el ícono guardan las cosas por separado).
+- Si cambian de celular o borran los datos del navegador, cambia el código y hay que pedir otra clave.
+- generar_licencia_apps.py tiene la clave privada: NO lo subas a GitHub ni lo mandes a nadie.
+
+CUANDO SALGA EL LISTADO DE TURNOS NUEVO
+Cada empleado: Más > "Cargar listado nuevo" (o sólo "Cambiar fecha confirmada" si sigue igual).
+(Como los datos están en cada celular, cada uno lo tiene que cargar. Si preferís que les llegue solo a todos,
+ se puede cambiar más adelante.)
+
+SUBIRLA A GITHUB (como las otras)
+1. GitHub (Rofac) > "+" > New repository > nombre: Roma (Public) > Create.
+2. Add file > Upload files: index.html, sw.js, manifest.webmanifest, LEEME.txt > Commit changes.
+3. Subir las carpetas de a una: css, js, fonts, img > Commit changes cada vez.
+4. Settings > Pages > Branch "main" y "/ (root)" > Save. Esperar 1 o 2 minutos.
+   Queda en: https://rofac.github.io/Roma/
+OJO: el repositorio es público pero NO tiene datos de nadie: los datos quedan sólo en cada celular.
+
+INSTALARLA (pasarles el link por WhatsApp)
+- ANDROID: abrir el link en Chrome > menú ⋮ > "Instalar app" (o "Agregar a la pantalla principal").
+- IPHONE: abrir el link en SAFARI (no en Chrome) > Compartir (cuadradito con flecha) > "Agregar a inicio" > Agregar.
+Después abrirla siempre desde el ícono "Roma". Anda sin internet.
+
+COPIA DE SEGURIDAD
+Todo está en el celular de cada uno. Más > "Guardar copia" (mandarla a WhatsApp, Drive o Archivos).
+Si cambia de celular: instalar la app en el nuevo > Más > "Restaurar copia" > elegir el archivo.
+
+ACTUALIZAR: subir los archivos nuevos al mismo repositorio. La app se actualiza sola la próxima vez que se abre
+con internet. Los datos de cada empleado no se tocan.

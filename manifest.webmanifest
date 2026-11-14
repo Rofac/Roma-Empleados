@@ -1,0 +1,18 @@
+{
+  "id": "./?app=roma",
+  "name": "Farmacia Roma",
+  "short_name": "Roma",
+  "description": "Turnos de Roma y Roma II, mis gastos y mis vacaciones",
+  "start_url": "./?app=roma",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f7fc",
+  "theme_color": "#ffffff",
+  "lang": "es",
+  "icons": [
+    { "src": "img/icono-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "img/icono-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "img/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
