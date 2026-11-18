@@ -28,6 +28,16 @@ QUÉ TIENE (cada empleado la usa en SU celular: sus datos quedan sólo ahí)
 - Más: su nombre (para saludarlo), en qué farmacia trabaja (Roma, Roma II o las dos: filtra "Mis guardias"
   y lo que se pasa al calendario), listado de turnos nuevo, fecha confirmada, farmacias, copia de seguridad.
 
+- APARIENCIA (18/11/2026, como en la Agenda Docente): Más > Apariencia. Cada empleado elige en su celular
+  · Color: Roma (verde y azul, como venía), Verde agua, Lila, Azul, Rosa, Coral o Grafito.
+  · Tipo de letra: Clásica, Redondeada (la de siempre) o Elegante.
+  · Tamaño de letra: Normal, Grande o Muy grande.
+  Se cambia al instante, queda guardado en ese celular y "Volver a como venía" lo deja como antes.
+  En los turnos, Roma sigue siempre en VERDE y Roma II en AZUL, con cualquier color. No toca los datos.
+  ACTUALIZAR: subí todos los archivos al mismo lugar de siempre (hay 3 nuevos: css/apariencia.css,
+  js/apariencia.js y fonts/Lora-Variable.woff). Los celulares toman la versión nueva (roma-1.4.0) solos
+  la próxima vez que abren la app con internet (a veces hay que cerrarla y abrirla 2 veces).
+
 ACTIVACIÓN (para que sólo la usen tus empleados)
 - La primera vez que la abren, la app muestra el CÓDIGO DE ESE CELULAR (ej. 7F3A-91C2-04BD) y no deja usarla hasta activarla.
   Con el botón "Mandar por WhatsApp" te lo mandan.

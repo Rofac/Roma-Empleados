@@ -1,0 +1,31 @@
+/* Apariencia elegida por cada empleado (Más > Apariencia). Queda guardada en su celular.
+   html[data-pal] = color · html[data-letra] = tipo de letra · html[data-tam] = tamaño.
+   En los turnos, Roma sigue en VERDE y Roma II en AZUL con cualquier color. */
+@font-face { font-family: 'Lora'; src: url(../fonts/Lora-Variable.woff) format('woff'); font-weight: 400 700; font-display: swap; }
+
+:root[data-pal="verde"]   { --p:#0e7c66; --p-osc:#0a5c4c; --p-claro:#e0f3ee; --p-2:#2fa58a; --s:#12937a; --s-osc:#0b6656; --s-claro:#e6f6f2; --s-2:#5cc6ad; --fondo:#eff8f5; --bg1:#cdeee4; --bg2:#dcf3ec; }
+:root[data-pal="lila"]    { --p:#7b4fb8; --p-osc:#4a2d6b; --p-claro:#efe6fa; --p-2:#9b6fd0; --s:#8a5cc2; --s-osc:#5e3a8a; --s-claro:#f3ecfb; --s-2:#b48ae0; --fondo:#f5f0fa; --bg1:#e6d8f7; --bg2:#efe4fa; }
+:root[data-pal="azul"]    { --p:#2563ad; --p-osc:#173e6b; --p-claro:#e4edf9; --p-2:#3a83cf; --s:#2f6fb5; --s-osc:#1d4d82; --s-claro:#e8f0fa; --s-2:#6aa3e0; --fondo:#eef3f9; --bg1:#cfe0f5; --bg2:#dde9f7; }
+:root[data-pal="rosa"]    { --p:#c2457a; --p-osc:#7a2a52; --p-claro:#fbe6ef; --p-2:#e06a9c; --s:#d0568a; --s-osc:#953763; --s-claro:#fcecf3; --s-2:#ec93b8; --fondo:#fbf0f5; --bg1:#f7d3e3; --bg2:#fbe1ec; }
+:root[data-pal="coral"]   { --p:#d0603a; --p-osc:#7a3320; --p-claro:#fde9df; --p-2:#ec8a5e; --s:#e07048; --s-osc:#9c432c; --s-claro:#fdefe8; --s-2:#f2a684; --fondo:#fdf3ee; --bg1:#f9d9c8; --bg2:#fce6da; }
+:root[data-pal="grafito"] { --p:#3f4a59; --p-osc:#262c33; --p-claro:#e9ecf0; --p-2:#5b6675; --s:#4b5563; --s-osc:#343b45; --s-claro:#eef0f3; --s-2:#8c98a8; --fondo:#f1f3f5; --bg1:#dde2e8; --bg2:#e7eaee; }
+:root[data-pal] { --grad: linear-gradient(120deg, var(--s-2) 0%, var(--s) 45%, var(--p-osc) 100%); --sombra: color-mix(in srgb, var(--p) 55%, transparent); }
+
+/* tipo de letra (por defecto: Redondeada = Poppins, como venía) */
+:root[data-letra="clasica"]  { --sans: -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif; }
+:root[data-letra="elegante"] { --sans: 'Lora', Georgia, serif; }
+
+/* tamaño de letra */
+:root[data-tam="grande"] { zoom: 1.1; }
+:root[data-tam="muy"]    { zoom: 1.2; }
+
+/* tarjeta de Más */
+.ap-t { font-size: 12.5px; font-weight: 600; color: var(--tenue); text-transform: uppercase; letter-spacing: .05em; margin: 12px 0 6px; }
+.ap-fila { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 8px; }
+.ap-fila.tres { grid-template-columns: repeat(3, 1fr); }
+.ap-color { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 4px 8px; border: 2px solid var(--borde); border-radius: 14px; background: #fff; font-size: 13px; font-weight: 500; color: var(--tinta); line-height: 1.15; text-align: center; }
+.ap-color i { display: block; width: 40px; height: 40px; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(255,255,255,.55), 0 0 0 1px #0001; }
+.ap-op { min-width: 0; padding: 10px 4px; border: 2px solid var(--borde); border-radius: 14px; background: #fff; text-align: center; color: var(--tinta); }
+.ap-op b { display: block; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ap-op small { display: block; font-size: 11.5px; color: var(--tenue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ap-color.act, .ap-op.act { border-color: var(--p); box-shadow: inset 0 0 0 1px var(--p); }

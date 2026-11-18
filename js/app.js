@@ -426,6 +426,7 @@
       `<div class="card"><div class="card-t">${I('usuario', 18)} Yo</div>
         <label class="l">Mi nombre</label><input class="in" id="mNom" value="${esc(E.cfg.nombre || '')}" placeholder="Para saludarte en el inicio" maxlength="40">
         <label class="l">Trabajo en</label><div class="seg chico" style="margin:4px 0 0">${[['ambas', 'Las dos'], ['roma', 'Roma'], ['roma2', 'Roma II']].map(([k, t]) => `<button class="${(E.cfg.mia || 'ambas') === k ? 'act' : ''}" data-acc="mia" data-v="${k}">${t}</button>`).join('')}</div></div>
+      <div class="card" id="cfAp"><div class="card-t">${I('paleta', 18)} Apariencia</div>${Apariencia.html()}</div>
       <div class="card"><div class="card-t">${I('farmacia', 18)} Listado de turnos</div>
         ${rs.map(r => `<div style="margin:8px 0 4px"><b>Desde el ${F.fechaCorta(r.desde)}/${r.desde.slice(0, 4)}</b> <small class="tenue">(cada ${r.orden.length} días se repite)</small>
           <div class="ayuda">${r.orden.map(id => A.esNuestra(id) ? `<b class="col-${claseF(id)}">${esc(nombreF(id))}</b>` : esc(nombreF(id))).join(' → ')}</div></div>`).join('')}
@@ -521,6 +522,8 @@
   const leerVac = () => { const d = $('#vD'), h = $('#vH'), n = $('#vN'); if (d) vSel.desde = d.value; if (h) vSel.hasta = h.value; if (n) vSel.nota = n.value; };
   const ACC = {
     ir: d => ir(d.p), cerrar: () => cerrar(),
+    ap: d => { Apariencia.guardar(d.k, d.v); repintar(); },
+    apVolver: () => { Apariencia.volver(); repintar(); toast('Listo: volvió a como venía'); },
     dia: d => abrir(hDia(d.f)),
     vista: d => { V.vista = d.v; try { sessionStorage.setItem('roma_vista', d.v); } catch (e) {} repintar(); },
     mes: d => { V.mes = masMes(V.mes, +d.d); pintar(); }, mesHoy: () => { V.mes = HOY.slice(0, 7); pintar(); },
